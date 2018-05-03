@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>满减活动</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.picker.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/dropload.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/common.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/style.css?v={$time}" />
+		<script type="text/javascript" src="__PUBLIC__/Api/js/jquery.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.picker.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/dropload.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/template.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/common.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/plupload/plupload.full.min.js"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/vue.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/init.js?v={$time}"></script>
+	</head>
+	<body>
+		<div id="main">
+			<div class="activity_1">
+				<h1>优惠</h1>
+				<ul>
+					<template v-for="(value,key) in list">
+					<li>
+						<div class="activity_1_box">
+							<span>满</span>
+							<input type="text" placeholder="门槛金额" v-model="value[0]" />
+							<span>元</span>
+						</div>
+						<div class="activity_1_box">
+							<span>减</span>
+							<input type="text" placeholder="力度金额" v-model="value[1]" />
+							<span>元</span>
+						</div>
+						<a href="javascript:;" class="del" v-on:tap="del(key)">删除</a>
+						<div class="clear"></div>
+					</li>
+					</template>
+					<li><a href="javascript:;" v-on:tap="add">添加满减</a></li>
+				</ul>
+			</div>
+		</div>
+		<script type="text/javascript">
+			var activity = new Vue({
+				el : '#main',
+				data : {
+					list : <if condition="$_REQUEST['action'] == 'edit'">{$data}<else />[['','']]</if>
+				},
+				methods : {
+					add : function(){
+						var arr = ['',''];
+						this.list.push(arr);
+					},
+					del : function(key){
+						var len = this.list.length - 1;
+						if(len < 1){
+							plus.nativeUI.alert('请预留一个输入框！',null,'提示','确定');
+						}else{
+							this.list.splice(key,1);
+						}
+					},
+					form_submit : function(){
+						var len = 0;
+						var data = '';
+						for(var i = 0;i < this.list.length;i++){
+							var row = this.list[i];
+							if(row[0] == '') len++;
+							if(row[1] == '') len++;
+							if(data == ''){
+								data = row[0] + '-' + row[1];
+							}else{
+								data += ',' + row[0] + '-' + row[1];
+							}
+						}
+						if(len > 0){
+							plus.nativeUI.alert('请完善数字！',null,'提示','确定');
+						}else{
+							var option = {
+								store_id : '{$store_id}',
+								type : '{$Think.get.type}',
+								action : '{$Think.get.action}',
+								data : data,
+								id : '{$Think.get.id}'
+							}
+							sendAjax('Service/setActivity',option,function(result){
+								if(result.status == 'success'){
+									var activity_edit = plus.webview.getWebviewById('activity_edit');
+									if(activity_edit != null){
+										mui.fire(activity_edit,'setOption',{
+											close : 'activity_edit'
+										});
+									}
+								}
+							});
+						}
+					}
+				}
+			});
+			function form_submit(){
+				activity.form_submit();
+			}
+		</script>
+	</body>
+</html>

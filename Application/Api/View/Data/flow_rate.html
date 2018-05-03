@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>流量分析</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.picker.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/dropload.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/common.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/style.css?v={$time}" />
+		<script type="text/javascript" src="__PUBLIC__/Api/js/jquery.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.picker.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/dropload.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/template.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/common.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/plupload/plupload.full.min.js"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/init.js?v={$time}"></script>
+		<script type="text/javascript">
+			var store_id = '{$store_id}';
+		</script>
+	</head>
+	<body>
+		<div class="common_item">
+			<ul>
+				<li><a href="javascript:;" class="active">今日</a></li>
+				<li><a href="javascript:;">昨日</a></li>
+				<li><a href="javascript:;">近7日</a></li>
+				<li><a href="javascript:;">近30日</a></li>
+				<li><a href="javascript:;:">自定义</a></li>
+				<div class="clear"></div>
+			</ul>
+			
+		</div>
+		<div class="common_time">
+			<ul>
+				<li>时间：</li>
+				<li><input type="text" value="{$input_time}" name="begin_time" readonly /></li>
+				<li style="margin:0px 10px;">至</li>
+				<li><input type="text" value="{$input_time}" name="end_time" readonly /></li>
+				<div class="clear"></div>
+			</ul>
+		</div>
+		<div class="flow_rate"></div>
+		<script type="text/javascript">
+			mui.plusReady(function(){
+				loadData(0);
+				mui('.common_item').on('tap','li',function(){
+					var index = $(this).index();
+					var input_time = '{$input_time}';
+					$('.common_time input').val(input_time);
+					$('.common_item li a').removeClass('active');
+					$(this).find('a').addClass('active');
+					if(index == 4){
+						$('.common_time').show();
+					}else{
+						$('.common_time').hide();
+					}
+					loadData(index);
+				});
+				mui('.common_time').on('tap','input',function(){
+					var obj = $(this);
+					var DtPicker = new mui.DtPicker({
+						value : '{$input_time}',
+						type : 'date',
+						beginYear : 2010,
+						endYear : 2020
+					});
+					DtPicker.show(function(result){
+						obj.val(result.text);
+						var beginDate = $('input[name="begin_time"]').val();  
+						var endDate = $('input[name="end_time"]').val();  
+						var d1 = new Date(beginDate.replace(/\-/g,'\/'));  
+						var d2 = new Date(endDate.replace(/\-/g,'\/'));  
+						if(d1 > d2){  
+							plus.nativeUI.alert('结束时间不能大于开始时间','','提示','确定');
+							return false;
+						}
+						loadData(4);
+						DtPicker.dispose();
+						DtPicker.picker = null;
+					});
+				});
+				function loadData(index){
+					var option = {
+						index : index,
+						store_id : store_id
+					}
+					if(index == 4){
+						option.begin_time = $('input[name="begin_time"]').val();
+						option.end_time = $('input[name="end_time"]').val();
+					}
+					sendAjax('Data/flow_rate_ajax',option,function(result){
+						$('.flow_rate').html(result.html);
+					});
+				}
+			});
+		</script>
+	</body>
+</html>

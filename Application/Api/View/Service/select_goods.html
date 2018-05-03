@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>选择商品</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.picker.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/dropload.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/common.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/style.css?v={$time}" />
+		<script type="text/javascript" src="__PUBLIC__/Api/js/jquery.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.picker.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/dropload.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/template.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/common.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/plupload/plupload.full.min.js"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/vue.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/init.js?v={$time}"></script>
+	</head>
+	<body>
+		<div id="main">
+			<div class="goods_catalog">
+				<ul>
+					<template v-for="(value,key) in category_list">
+					<li><a href="javascript:;" v-bind:class="{active : key == 0}" v-on:tap="loadGoods(key)">{{value.name}}</a></li>
+					</template>
+				</ul>
+			</div>
+			<div class="goods_edit_list">
+				<h3>{{category_name}}</h3>
+				<ul>
+					<template v-for="(value,key) in goods_list">
+					<li v-on:tap="select(key,value.id,value.goods_name)">
+						<div class="goods_edit_list_info">
+							<img v-bind:src="value.litpic" />
+							<div class="goods_edit_list_info_text">
+								<h4>{{value.goods_name}}</h4>
+								<p>销售&nbsp;{{value.sale}}&nbsp;份</p>
+								<span>￥{{value.price}}</span>
+							</div>
+						</div>
+					</li>
+					</template>
+				</ul>
+			</div>
+			<a href="javascript:;" class="select_ok" v-on:tap="submit">选择完成</a>
+		</div>
+		<script type="text/javascript">
+			mui.plusReady(function(){
+				var goods = new Vue({
+					el : '#main',
+					data : {
+						store_id : {$store_id},
+						category_name : '',
+						category_list : [],
+						goods_list : [],
+						select_goods_list : [],
+						loading : 0
+					},
+					mounted : function(){
+						var data = '{$Think.get.data}';
+						if(data != ''){
+							var arr = new Array();
+							var l = data.split(',');
+							for(var i = 0;i < l.length;i++){
+								var a = l[i].split('-');
+								arr.push([a[0],a[1]]);
+							}
+							this.select_goods_list = arr;
+						}
+						this.loadData();
+					},
+					methods : {
+						loadData : function(){
+							var obj = this;
+							var option = {
+								store_id : this.store_id
+							}
+							loading(0);
+							sendAjax('Service/getCatalog',option,function(result){
+								obj.category_list = result.list;
+								obj.$nextTick(function(){
+									obj.loadGoods(0);
+									obj.loading = 1;
+								});
+							},false);
+						},
+						loadGoods : function(index){
+							var obj = this;
+							var category_id = this.category_list[index].id;
+							var option = {
+								store_id : this.store_id,
+								category_id : category_id
+							}
+							var is_loading = obj.loading == 0 ? false : true;
+							sendAjax('Service/getCatalogGoods',option,function(result){
+								obj.category_name = result.category_name;
+								obj.goods_list = result.list;
+								$('.goods_catalog li a').removeClass('active');
+								$('.goods_catalog li').eq(index).find('a').addClass('active');
+								$('.goods_edit_list li i').remove();
+								obj.$nextTick(function(){
+									for(var i = 0;i < result.list.length;i++){
+										var row = result.list[i];
+										var len = obj.checkGoods(row.id);
+										if(len == 1) $('.goods_edit_list li').eq(i).append('<i class="mui-icon mui-icon-checkmarkempty"></i>');
+									}
+								});
+								loading(1);
+							},is_loading);
+						},
+						checkGoods : function(goods_id){
+							var len = 0;
+							for(var i = 0;i < this.select_goods_list.length;i++){
+								var row = this.select_goods_list[i];
+								if(goods_id == row[0]) len = 1;
+							}
+							return len;
+						},
+						select : function(key,goods_id,goods_name){
+							var el = $('.goods_edit_list li').eq(key);
+							var len = el.find('i').length;
+							var html = '<i class="mui-icon mui-icon-checkmarkempty"></i>';
+							if(len > 0){
+								el.find('i').remove();
+								this.changeGoods(goods_id,goods_name,'remove');
+							}else{
+								el.append(html);
+								this.changeGoods(goods_id,goods_name,'add');
+							}
+						},
+						changeGoods : function(goods_id,goods_name,action){
+							if(action == 'add'){
+								var arr = [goods_id,goods_name];
+								this.select_goods_list.push(arr);
+							}else{
+								var index = 0;
+								for(var i = 0;i < this.select_goods_list.length;i++){
+									var row = this.select_goods_list[i];
+									if(row[0] == goods_id) this.select_goods_list.splice(i,1);
+								}
+							}
+						},
+						submit : function(){
+							var string = '';
+							for(var i = 0;i < this.select_goods_list.length;i++){
+								var row = this.select_goods_list[i];
+								if(string == ''){
+									string = row[0] + '-' + row[1];
+								}else{
+									string += ',' + row[0] + '-' + row[1];
+								}
+							}
+							var webview = plus.webview.getWebviewById('{$Think.get.id}');
+							if(webview != null){
+								mui.fire(webview,'setOption',{
+									func : 'activity.setList("' + string + '")',
+									close : 'select_goods'
+								});
+							}
+						}
+					}
+				});
+			});
+		</script>
+	</body>
+</html>

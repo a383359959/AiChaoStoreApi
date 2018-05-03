@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>数据中心</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.picker.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/dropload.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/common.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/style.css?v={$time}" />
+		<script type="text/javascript" src="__PUBLIC__/Api/js/jquery.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.picker.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/dropload.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/template.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/common.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/plupload/plupload.full.min.js"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/vue.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/init.js?v={$time}"></script>
+		<script type="text/javascript">
+			var store_id = '{$store_id}';
+		</script>
+	</head>
+	<body>
+		<h1>
+			<span>今日营业统计</span>
+			<p>{$input_time}</p>
+			<div class="clear"></div>
+		</h1>
+		<div class="order_main">
+			<ul>
+				<li>
+					<table>
+						<tr>
+							<td>
+								<h2>营业额</h2>
+								<p>￥{$data.price}</p>
+								<span>昨日&nbsp;￥{$data.old_price}</span>
+							</td>
+							<td>
+								<h2>支出</h2>
+								<p>￥{$data.expenditure}</p>
+								<span>昨日&nbsp;￥{$data.old_expenditure}</span>
+							</td>
+						</tr>
+					</table>
+				</li>
+				<li>
+					<table>
+						<tr>
+							<td>
+								<h2>订单</h2>
+								<p>{$data.count}</p>
+								<span>昨日&nbsp;{$data.old_count}</span>
+							</td>
+							<td>
+								<h2>余额</h2>
+								<p>￥{$data.balance}</p>
+								<span>昨日&nbsp;￥{$data.old_balance}</span>
+							</td>
+						</tr>
+					</table>
+				</li>
+			</ul>
+		</div>
+		<div class="order_menu">
+			<ul>
+				<li v-on:tap="link('{:U('tixian',array('store_id' => $store_id))}')"><a href="javascript:;">提现</a><i class="mui-icon mui-icon-arrowright"></i></li>
+				<li v-on:tap="link('{:U('business',array('store_id' => $store_id))}')"><a href="javascript:;">历史营业统计</a><i class="mui-icon mui-icon-arrowright"></i></li>
+				<li v-on:tap="link('{:U('flow_rate',array('store_id' => $store_id))}')"><a href="javascript:;">流量分析</a><i class="mui-icon mui-icon-arrowright"></i></li>
+				<li v-on:tap="link('{:U('goods',array('store_id' => $store_id))}')"><a href="javascript:;">菜品分析</a><i class="mui-icon mui-icon-arrowright"></i></li>
+			</ul>
+		</div>
+		<script type="text/javascript">
+			new Vue({
+				el : '.order_menu',
+				methods : {
+					link : function(url){
+						openWindow('iframe',url,'data_iframe');
+					}
+				}
+			});
+		</script>
+	</body>
+</html>

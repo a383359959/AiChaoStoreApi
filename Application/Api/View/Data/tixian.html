@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>提现</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.picker.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/dropload.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/common.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/style.css?v={$time}" />
+		<script type="text/javascript" src="__PUBLIC__/Api/js/jquery.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.picker.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/dropload.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/template.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/common.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/plupload/plupload.full.min.js"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/vue.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/init.js?v={$time}"></script>
+		<script type="text/javascript">
+			var store_id = '{$store_id}';
+		</script>
+	</head>
+	<body>
+		<div id="main">
+			<div class="tixian">
+				<ul>
+					<li>
+						<span>可用余额：</span>
+						<p>{$store.price}</p>
+						<div class="clear"></div>
+					</li>
+					<li>
+						<span>支付宝账户：</span>
+						<input type="text" placeholder="请输入支付宝账户" v-model="alipay_accounts" />
+						<div class="clear"></div>
+					</li>
+					<li>
+						<span>支付宝姓名：</span>
+						<input type="text" placeholder="请输入支付宝姓名" v-model="alipay_name" />
+						<div class="clear"></div>
+					</li>
+					<li>
+						<span>提现金额：</span>
+						<input type="text" placeholder="请输入提现金额" v-model="price" />
+						<div class="clear"></div>
+					</li>
+					<li style="border:none;"><a href="javascript:;" v-on:tap="tixian">提现</a></li>
+				</ul>
+			</div>
+			<div class="tixian_log">
+				<ul>
+					<template v-for="(value,key) in list">
+					<li>
+						<span>{{value.desc}}（{{value.price}}元）</span>
+						<p>{{value.add_time}}</p>
+						<div class="clear"></div>
+					</li>
+					</template>
+				</ul>
+			</div>
+		</div>
+	</body>
+	<script>
+		mui.plusReady(function(){
+			new Vue({
+				el : '#main',
+				data : {
+					list : [],
+					store_name : '{$store.store_name}',
+					alipay_accounts : '',
+					alipay_name : '',
+					price : '',
+					account_price : '{$store.price}'
+				},
+				mounted : function(){
+					this.loadData();
+				},
+				methods : {
+					loadData : function(){
+						var page = 0;
+						var obj = this;
+						$('.dropload-down').remove();
+						$('.tixian_log').dropload({
+							scrollArea : window,
+							loadDownFn : function(me){
+								page++;
+								var option = {
+									'store_id' : {$Think.get.store_id},
+									'page' : page
+								};
+								sendAjax('Data/tixianlog',option,function(result){
+									if(result.list.length > 0){
+										for(var i = 0;i < result.list.length;i++){
+											obj.list.push(result.list[i]);
+										}
+									}else{
+										me.lock();
+										me.noData();
+									}
+									me.resetload();
+								},false);
+							}
+						});
+					},
+					tixian : function(){
+						if(this.alipay_accounts == ''){
+							plus.nativeUI.alert('请输入支付宝账户！',null,'提示','确定');
+						}else if(this.alipay_name == ''){
+							plus.nativeUI.alert('请输入支付宝姓名！',null,'提示','确定');
+						}else if(this.price == ''){
+							plus.nativeUI.alert('请输入提现金额！',null,'提示','确定');
+						}else if(this.price < 100){
+							plus.nativeUI.alert('提现金额必须大于100元！',null,'提示','确定');
+						}else if(this.price > this.account_price){
+							plus.nativeUI.alert('账户余额不足！',null,'提示','确定');
+						}else{
+							var option = {
+								store_id : '{$Think.get.store_id}',
+								store_name : this.store_name,
+								alipay_accounts : this.alipay_accounts,
+								alipay_name : this.alipay_name,
+								price : this.price,
+							}
+							sendAjax('Data/tixianAction',option,function(result){
+								if(result.status == 'success'){
+									var iframe = plus.webview.getWebviewById('data_iframe');
+									if(iframe != null){
+										mui.fire(iframe,'setOption',{
+											func : '',
+											close : 'data_iframe'
+										});
+									}
+								}
+							});
+						}
+					}
+				}
+			});
+		});
+	</script>
+</html>

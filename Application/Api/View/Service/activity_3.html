@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>买一送一</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.picker.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/lCalendar.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/common.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/style.css?v={$time}" />
+		<script type="text/javascript" src="__PUBLIC__/Api/js/jquery.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.picker.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/lCalendar.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/template.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/common.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/plupload/plupload.full.min.js"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/vue.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/init.js?v={$time}"></script>
+	</head>
+	<body>
+		<div id="main">
+			<div class="activity_2">
+				<div class="activity_2_setting">
+					<ul>
+						<li>
+							<span>开始时间</span>
+							<input type="text" placeholder="请选择开始时间" readonly="readonly" id="begin_time" v-model="begin_time" />
+							<div class="clear"></div>
+						</li>
+						<li>
+							<span>结束时间</span>
+							<input type="text" placeholder="请选择开始时间" readonly="readonly" id="end_time" v-model="end_time" />
+							<div class="clear"></div>
+						</li>
+					</ul>
+				</div>
+				<div class="activity_2_goods">
+					<a href="javascript:;" v-on:tap="selectGoods">选择商品</a>
+					<ul>
+						<template v-for="(value,key) in list">
+						<li>
+							<span>{{value[1]}}</span>
+							<a href="javascript:;" class="del" v-on:tap="del(key)">删除</a>
+							<div class="clear"></div>
+						</li>
+						</template>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript">
+			var activity = new Vue({
+				el : '#main',
+				data : {
+					begin_time : '{$begin_time}',
+					end_time : '{$begin_time}',
+					list : <if condition="$_REQUEST['action'] == 'edit'">{$data}<else />[]</if>
+				},
+				mounted : function(){
+					var calendar_begin_time = new lCalendar();
+					calendar_begin_time.init({
+						'trigger': '#begin_time',
+						'type': 'datetime'
+					});
+					var calendar_end_time = new lCalendar();
+					calendar_end_time.init({
+						'trigger': '#end_time',
+						'type': 'datetime'
+					});
+				},
+				methods : {
+					selectGoods : function(){
+						var string = '';
+						if(this.list.length > 0){
+							for(var i = 0;i < this.list.length;i++){
+								var row = this.list[i];
+								if(string == ''){
+									string = row[0] + '-' + row[1];
+								}else{
+									string += ',' + row[0] + '-' + row[1];
+								}
+							}
+						}
+						var url = '{:U("select_goods",array("store_id" => $store_id,"id" => "activity_edit"))}';
+						if(string != '') url += '?data=' + string;
+						openWindow('iframe',url,'select_goods');
+					},
+					del : function(key){
+						this.list.splice(key,1);
+					},
+					setList : function(string){
+						if(string == ''){
+							this.list = [];
+						}else{
+							var arr = new Array();
+							var l = string.split(',');
+							for(var i = 0;i < l.length;i++){
+								var a = l[i].split('-');
+								arr.push([a[0],a[1]]);
+							}
+							this.list = arr;
+						}
+					},
+					form_submit : function(){
+						if(this.begin_time == ''){
+							plus.nativeUI.alert('请选择开始时间！',null,'提示','确定');
+						}else if(this.end_time == ''){
+							plus.nativeUI.alert('请选择结束时间！',null,'提示','确定');
+						}else if(this.list.length <= 0){
+							plus.nativeUI.alert('请选择商品！',null,'提示','确定');
+						}else{
+							var goods_id = '';
+							for(var i = 0;i < this.list.length;i++){
+								var row = this.list[i];
+								if(goods_id == ''){
+									goods_id = row[0];
+								}else{
+									goods_id += ',' + row[0];
+								}
+							}
+							var option = {
+								store_id : {$store_id},
+								begin_time : this.begin_time,
+								end_time : this.end_time,
+								data : goods_id,
+								type : '{$Think.get.type}',
+								action : '{$Think.get.action}',
+								id : '{$Think.get.id}'
+							}
+							sendAjax('Service/setActivity',option,function(result){
+								if(result.status ==  'success'){
+									var activity_edit = plus.webview.getWebviewById('activity_edit');
+									if(activity_edit != null){
+										mui.fire(activity_edit,'setOption',{
+											close : 'activity_edit'
+										});
+									}
+								}else{
+									plus.nativeUI.alert(result.msg,null,'提示','确定');
+								}
+							});
+						}
+					}
+				}
+			});
+			function form_submit(){
+				activity.form_submit();
+			}
+		</script>
+	</body>
+</html>

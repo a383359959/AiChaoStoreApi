@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title><if condition="$_REQUEST['type'] == add">新建<else />修改</if>商品</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.picker.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/dropload.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/common.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/style.css?v={$time}" />
+		<script type="text/javascript" src="__PUBLIC__/Api/js/jquery.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.picker.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/dropload.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/template.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/common.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/plupload/plupload.full.min.js"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/vue.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/init.js?v={$time}"></script>
+	</head>
+	<body>
+		<div class="goods_edit">
+			<h2>基本信息</h2>
+			<ul>
+				<li>
+					<label style="line-height:60px;">商品图片</label>
+					<div class="img_upload">
+						<img v-bind:src="imgurl + litpic" id="upload" v-if="litpic != ''" />
+						<img v-bind:src="default_litpic" id="upload" v-if="litpic == ''" />
+					</div>
+					<div class="clear"></div>
+				</li>
+				<li>
+					<label>商品名称</label>
+					<div class="goods_text">
+						<input type="text" name="goods_name" v-model="goods_name" placeholder="20字以内" />
+					</div>
+					<div class="clear"></div>
+				</li>
+				<li>
+					<label>商品价格</label>
+					<div class="goods_text">
+						<input type="text" name="price" v-model="price" placeholder="请填写价格" />
+						<i>元</i>
+					</div>
+					<div class="clear"></div>
+				</li>
+				<li>
+					<label>商品分类</label>
+					<div class="goods_catalog_select">
+						<select v-model="category_id">
+							<option value="0">请选择</option>
+							<volist name="store_category" id="value">
+							<option value="{$value.id}">{$value.name}</option>
+							</volist>
+						</select>
+						<span>{{category_name}}</span>
+						<i class="mui-icon mui-icon-arrowright"></i>
+					</div>
+					<div class="clear"></div>
+				</li>
+			</ul>
+		</div>
+		<script type="text/javascript">
+			$(function(){
+				$('.goods_catalog_select select').bind('change',function(){
+					var text = $('.goods_catalog_select option:selected').text();
+					$('.goods_catalog_select span').text(text);
+				});
+			});
+			<!-- mui.plusReady(function(){ -->
+				var goods_edit = new Vue({
+					el : '.goods_edit',
+					data : {
+						imgurl : 'http://static.upload.smdouyou.com/',
+						store_id : '{$store_id}',
+						goods_name : '{$rs.goods_name}',
+						litpic : <if condition="$_REQUEST['type'] == add">'__PUBLIC__/Api/images/img_add.png'<else />'{$rs.litpic}'</if>,
+						default_litpic : '__PUBLIC__/Api/images/img_add.png',
+						price : '{$rs.price}',
+						category_id : <if condition="$_REQUEST['type'] == add">0<else />'{$rs.category_id}'</if>,
+						category_name : <if condition="$_REQUEST['type'] == add">'请选择'<else />'{$category_name}'</if>,
+						uploader : null,
+						type : '{$Think.get.type}',
+						goods_id : '{$Think.get.goods_id}'
+					},
+					mounted : function(){
+						this.uploadimg();
+					},
+					methods : {
+						uploadimg : function(){
+							var obj = this;
+							var uploader = new plupload.Uploader({
+								runtimes : 'silverlight,html4',
+								browse_button : 'upload',
+								url : '{:U("goods_img_upload")}',
+								chunk_size : '10mb',
+								unique_names : true,
+								resize : {
+									width : 100,
+									height : 100,
+									quality : 90
+								},
+								filters : {
+									max_file_size : '10mb',
+									mime_types: []
+								},
+								flash_swf_url : '__PUBLIC__/Api/js/plupload/Moxie.swf',
+								silverlight_xap_url : '__PUBLIC__/Api/js/plupload/Moxie.xap',
+								init : {
+									FilesAdded : function(up,files){	// 选择文件后开始上传
+										plus.nativeUI.showWaiting();
+										up.start();
+									},
+									FileUploaded : function(up,file,info){	// 上传完成后
+										var json = eval('(' + info.response + ')');
+										if(json.status == 'success'){
+											obj.litpic = json.path;
+										}else{
+											plus.nativeUI.alert(json.msg,'','提示','确定');
+										}
+										plus.nativeUI.closeWaiting();
+									}
+								}
+							});
+							uploader.init();
+						},
+						form_submit : function(){
+							/*if(this.litpic == this.default_litpic){
+								plus.nativeUI.alert('请上传图片！','','提示','确定');
+							}else */
+							if(this.goods_name == ''){
+								plus.nativeUI.alert('请输入商品名称！',null,'提示','确定');
+							}else if(this.goods_name.length > 20){
+								plus.nativeUI.alert('商品名称不能大于20个字符！',null,'提示','确定');
+							}else if(this.price < 1){
+								plus.nativeUI.alert('请填写价格！',null,'提示','确定');
+							}else if(this.price == ''){
+								plus.nativeUI.alert('请填写价格！',null,'提示','确定');
+							}else if(this.category_id < 1){
+								plus.nativeUI.alert('请选择分类',null,'提示','确定');
+							}else{
+								var option = {
+									store_id : this.store_id,
+									category_id : this.category_id,
+									goods_name : this.goods_name,
+									litpic :this.litpic,
+									price : this.price,
+									type : this.type,
+									goods_id : this.goods_id
+								}
+								sendAjax('Service/goods_edit_ajax',option,function(result){
+									if(result.status == 'success'){
+										var iframe = plus.webview.getWebviewById('iframe');
+										if(iframe != null){
+											mui.fire(iframe,'setOption',{
+												func : 'goods.loadData()',
+												close : 'goods_edit'
+											});
+										}
+									}else{
+										plus.nativeUI.alert(result.msg,null,'提示','确定');
+									}
+								});
+							}
+						}
+					}
+				});
+				
+				/*
+				*	提交
+				*/
+				function form_submit(){
+					goods_edit.form_submit();
+				}
+			<!-- }); -->
+		</script>
+	</body>
+</html>

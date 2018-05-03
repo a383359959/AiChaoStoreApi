@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>营销活动</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.picker.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/dropload.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/common.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/style.css?v={$time}" />
+		<script type="text/javascript" src="__PUBLIC__/Api/js/jquery.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.picker.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/dropload.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/template.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/common.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/plupload/plupload.full.min.js"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/vue.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/init.js?v={$time}"></script>
+	</head>
+	<body>
+		<div id="main">
+			<div class="activity_item">
+				<ul>
+					<li class="focus"><a href="javascript:;">新建</a></li>
+					<li><a href="{:U('activity_list',array('store_id' => $store_id))}">已参加</a></li>
+					<div class="clear"></div>
+				</ul>
+			</div>
+			<div class="activity">
+				<ul>
+					<li>
+						<div class="icon">减</div>
+						<div class="icon_name">满减活动</div>
+						<a href="javascript:;" v-on:tap="link('add','1')">新建</a>
+						<div class="clear"></div>
+					</li>
+					<li>
+						<div class="icon" style="background:#f27273;">半</div>
+						<div class="icon_name">第二份半价</div>
+						<a href="javascript:;" v-on:tap="link('add','2')">新建</a>
+						<div class="clear"></div>
+					</li>
+					<li>
+						<div class="icon" style="background:#3cc790;">送</div>
+						<div class="icon_name">买一送一</div>
+						<a href="javascript:;" v-on:tap="link('add','3')">新建</a>
+						<div class="clear"></div>
+					</li>
+					<li>
+						<div class="icon" style="background:#8b79e3;">抢</div>
+						<div class="icon_name">限时抢购</div>
+						<a href="javascript:;" v-on:tap="link('add','4')">新建</a>
+						<div class="clear"></div>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<script type="text/javascript">
+			new Vue({
+				el : '#main',
+				methods : {
+					link : function(action,type){
+						var url = '{:U("activity_edit",array("store_id" => $store_id))}' + '?action=' + action + '&type=' + type;
+						openWindow('edit',url,'activity_edit');
+					}
+				}
+			});
+		</script>
+	</body>
+</html>

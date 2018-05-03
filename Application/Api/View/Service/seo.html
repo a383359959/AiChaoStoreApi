@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>店铺推广</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.picker.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/dropload.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/common.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/style.css?v={$time}" />
+		<script type="text/javascript" src="__PUBLIC__/Api/js/jquery.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.picker.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/dropload.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/template.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/common.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/plupload/plupload.full.min.js"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/vue.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/init.js?v={$time}"></script>
+	</head>
+	<body>
+		<div id="main">
+			<div class="seo">
+				<div class="seo_header">
+					<h2>账户余额</h2>
+					<p>{{price}}&nbsp;元</p>
+				</div>
+			</div>
+			<div class="seo_main">
+				<ul>
+					<li>
+						<label>开启状态</label>
+						<div class="seo_main_select">
+							<span>{{ranking_status_text}}</span>
+							<select v-model="ranking_status">
+								<option value="0">关闭</option>
+								<option value="1">开启</option>
+							</select>
+						</div>
+						<div class="clear"></div>
+					</li>
+					<li>
+						<label>竞价金额</label>
+						<input type="text" class="text" v-model="ranking" placeholder="请输入竞价金额" />
+						<div class="clear"></div>
+					</li>
+					<li>
+						<label>每日预算</label>
+						<input type="text" class="text" v-model="ranking_budget" placeholder="请输入每日预算" />
+						<div class="clear"></div>
+					</li>
+				</ul>
+				<a href="javascript:;" class="seo_submit" v-on:tap="submit">保存</a>
+			</div>
+		</div>
+		<script>
+			$(function(){
+				$('.seo_main_select select').bind('change',function(){
+					var text = $('.seo_main_select option:selected').text();
+					$('.seo_main_select span').text(text);
+				});
+			});
+			new Vue({
+				el : '#main',
+				data : {
+					store_id : {$store_id},
+					price : '{$store.price}',
+					ranking_status : '',
+					ranking_status_text : <if condition="$store['ranking_status'] == 1">'开启'<else />'关闭'</if>,
+					ranking : '{$store.ranking}',
+					ranking_budget : '{$store.ranking_budget}'
+				},
+				methods : {
+					submit : function(){
+						if(this.price <= 0){
+							plus.nativeUI.alert('余额不足！','','提示','确定');
+						}else if(this.ranking <= 0){
+							plus.nativeUI.alert('竞价金额不能小于0！','','提示','确定');
+						}else if(this.ranking_budget <= 0){
+							plus.nativeUI.alert('每日预算不能小于0！','','提示','确定');
+						}else{
+							var option = {
+								store_id : this.store_id,
+								ranking_status : this.ranking_status,
+								ranking : this.ranking,
+								ranking_budget : this.ranking_budget
+							}
+							sendAjax('Service/seo_action',option,function(result){
+								if(result.status == 'success'){
+									var iframe = plus.webview.getWebviewById('iframe');
+									iframe.close();
+								}
+							});
+						}
+					}
+				}
+			});
+		</script>
+	</body>
+</html>

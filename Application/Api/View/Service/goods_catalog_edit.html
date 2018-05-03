@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title><if condition="$_REQUEST['type'] == add">新建<else />修改</if>分类</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.picker.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/dropload.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/common.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/style.css?v={$time}" />
+		<script type="text/javascript" src="__PUBLIC__/Api/js/jquery.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.picker.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/dropload.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/template.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/common.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/plupload/plupload.full.min.js"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/vue.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/init.js?v={$time}"></script>
+	</head>
+	<body>
+		<div class="goods_edit">
+			<ul>
+				<li>
+					<label>分类名称</label>
+					<div class="goods_text">
+						<input type="text" name="name" v-model="name" placeholder="20字以内" />
+					</div>
+					<div class="clear"></div>
+				</li>
+			</ul>
+			<a href="javascript:;" v-if="type == 'edit'" class="goods_catalog_del" v-on:tap="del">删除</a>
+		</div>
+		<script type="text/javascript">
+			var goods_catalog = new Vue({
+				el : '.goods_edit',
+				data : {
+					store_id : '{$store_id}',
+					name : '{$rs.name}',
+					type : '{$Think.get.type}',
+					category_id : '{$Think.get.category_id}'
+				},
+				methods : {
+					del : function(){
+						var obj = this;
+						plus.nativeUI.confirm('确定删除？',function(e){
+							if(e.index == 0){
+								var option = {
+									store_id : obj.store_id,
+									category_id : obj.category_id,
+									name : obj.name,
+									type : 'del',
+									goods_id : obj.goods_id
+								}
+								sendAjax('Service/goods_catalog_edit_ajax',option,function(result){
+									if(result.status == 'success'){
+										var goods_catalog = plus.webview.getWebviewById('goods_catalog');
+										if(goods_catalog != null){
+											mui.fire(goods_catalog,'setOption',{
+												func : 'goods_catalog.loadData(1)',
+												close : 'goods_catalog_edit'
+											});
+										}
+									}else{
+										plus.nativeUI.alert(result.msg,null,'提示','确定');
+									}
+								});
+							}
+						},['是','否']);
+					},
+					form_submit : function(){
+						if(this.name == ''){
+							plus.nativeUI.alert('请输入分类名称！',null,'提示','确定');
+						}else if(this.name.length > 20){
+							plus.nativeUI.alert('分类名称不能大于20个字符！',null,'提示','确定');
+						}else{
+							var option = {
+								store_id : this.store_id,
+								category_id : this.category_id,
+								name : this.name,
+								type : this.type,
+								goods_id : this.goods_id
+							}
+							sendAjax('Service/goods_catalog_edit_ajax',option,function(result){
+								if(result.status == 'success'){
+									var goods_catalog = plus.webview.getWebviewById('goods_catalog');
+									if(goods_catalog != null){
+										mui.fire(goods_catalog,'setOption',{
+											func : 'goods_catalog.loadData(1)',
+											close : 'goods_catalog_edit'
+										});
+									}
+								}else{
+									plus.nativeUI.alert(result.msg,null,'提示','确定');
+								}
+							});
+						}
+					}
+				}
+			});
+			
+			/*
+			*	提交
+			*/
+			function form_submit(){
+				goods_catalog.form_submit();
+			}
+		</script>
+	</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>已参加活动</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/mui.picker.min.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/dropload.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/common.css?v={$time}" />
+		<link rel="stylesheet" href="__PUBLIC__/Api/css/style.css?v={$time}" />
+		<script type="text/javascript" src="__PUBLIC__/Api/js/jquery.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/mui.picker.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/dropload.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/template.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/common.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/plupload/plupload.full.min.js"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/vue.min.js?v={$time}"></script>
+		<script type="text/javascript" src="__PUBLIC__/Api/js/init.js?v={$time}"></script>
+	</head>
+	<body>
+		<div id="main">
+			<div class="activity_item">
+				<ul>
+					<li><a href="{:U('activity',array('store_id' => $store_id))}">新建</a></li>
+					<li class="focus"><a href="javascript:;">已参加</a></li>
+					<div class="clear"></div>
+				</ul>
+			</div>
+			<div class="activity_list">
+				<ul>
+					<template v-for="(value,key) in list">
+					<li>
+						<div class="activity_list_title">
+							<div class="icon" v-if="value.type == 1">减</div>
+							<div class="icon" v-if="value.type == 2" style="background:#f27273;">半</div>
+							<div class="icon" v-if="value.type == 3" style="background:#3cc790;">送</div>
+							<div class="icon" v-if="value.type == 4" style="background:#8b79e3;">抢</div>
+							<div class="icon_name" v-if="value.type == 1">满减活动</div>
+							<div class="icon_name" v-if="value.type == 2">第二份半价</div>
+							<div class="icon_name" v-if="value.type == 3">买一送一</div>
+							<div class="icon_name" v-if="value.type == 4">限时抢购</div>
+							<div class="icon_status" v-if="value.status == 0">未开始</div>
+							<div class="icon_status" v-if="value.status == 1">进行中</div>
+							<div class="icon_status" v-if="value.status == 2">已结束</div>
+							<div class="clear"></div>
+						</div>
+						<div class="activity_list_h1">活动内容</div>
+						<div class="activity_list_layout" v-html="value.html"></div>
+						<div class="activity_list_btn">
+							<a href="javascript:;" style="color:red;" v-on:tap="del(value.id,key)">删除</a>
+							<a href="javascript:;" v-on:tap="link('edit',value.type,value.id)">修改</a>
+							<div class="clear"></div>
+						</div>
+					</li>
+					</template>
+				</ul>
+			</div>
+		</div>
+		<script type="text/javascript">
+			mui.plusReady(function(){
+				new Vue({
+					el : '#main',
+					data : {
+						list : []
+					},
+					mounted : function(){
+						this.loadData();
+					},
+					methods : {
+						loadData : function(){
+							var obj = this;
+							var option = {
+								store_id : {$store_id}
+							}
+							loading(0);
+							sendAjax('Service/activity_ajax',option,function(result){
+								obj.list = result.list;
+								loading(1);
+							},false);
+						},
+						link : function(action,type,id){
+							var url = '{:U("activity_edit",array("store_id" => $store_id))}' + '?action=' + action + '&type=' + type + '&id=' + id;
+							openWindow('edit',url,'activity_edit');
+						},
+						del : function(id,key){
+							var obj = this;
+							var option = {
+								id : id
+							};
+							plus.nativeUI.confirm('确定删除？',function(e){
+								if(e.index == 0){
+									sendAjax('Service/delActivity',option,function(result){
+										if(result.status == 'success') obj.list.splice(key,1);
+									});
+								}
+							},['是','否']);
+						}
+					}
+				});
+			});
+		</script>
+	</body>
+</html>
